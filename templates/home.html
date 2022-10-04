@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        {% if message %}
+            <div class="alert alert-{{ alert_type if alert_type is not none else primary }} alert-dismissible">
+                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                {{ message }}
+            </div>
+        {% endif %}
+        <h2>Todo List</h2>
+        <div>add a new todo list</div>
+        <form action="{{ url_for('add') }}" method="POST">
+            <input class="form-control" type="text" name="task" />
+            <input value="Add item" type="submit" />
+        </form>
+        <div class="form-group">
+            <h3>incomplete items</h3>
+            <ul>
+                {% for todo in incomplete %}
+                <li style="font-size: 30pt">
+                    {{ todo.task }}
+                    <button class="btn btn-primary" onclick="markItem('{{todo.id}}', 1)">Mark as complete</button>
+                    <button class="btn btn-danger" onclick="deleteItem('{{todo.id}}')">delete</button>
+                </li>
+                {% endfor %}
+            </ul>
+            <h3>complete</h3>
+            <ul>
+                {% for todo in complete %}
+                    <li style="font-size: 30pt">
+                        {{ todo.task }}
+                        <button class="btn btn-primary" onclick="markItem('{{todo.id}}', 0)">Mark as incomplete</button>
+                        <button class="btn btn-danger" onclick="deleteItem('{{todo.id}}')">delete</button>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <script>
+            //get message from query string
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message') || '';
+            let alert_type = urlParams.get('alert_type');
+            console.log(message, alert_type);
+            
+            if (message) {
+                //remove message from query string
+                window.history.replaceState({}, document.title, "/");
+                
+                //show bootstrap alert
+                const alert = document.createElement('div');
+                if (!alert_type){
+                    alert_type = 'primary'
+                }
+
+                alert.classList.add('alert', `alert-${alert_type}`, 'alert-dismissible');
+                alert.innerHTML = `<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>${message}`;
+                document.querySelector('.container').prepend(alert);
+
+            }
+
+            var url = "http://localhost:5000";
+            function deleteItem(id) {
+                deleteUrl = `${url}/delete/${id}`
+                $.ajax({
+                    url: deleteUrl,
+                    type : 'DELETE',
+                    success: function(result){
+                        window.location.href = `${url}?message=${result.message}&alert_type=${result.alert_type || 'primary'}`;
+                    }
+                });
+            }
+
+            function markItem(id, status) {
+                markUrl = `${url}/mark/${id}/${status}`
+                $.ajax({
+                    url: markUrl,
+                    type : 'PUT',
+                    success: function(result){
+                        window.location.href = `${url}?message=${result.message}&alert_type=${result.alert_type || 'primary'}`;
+                    }
+                });
+            }
+        </script>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ"
+        crossorigin="anonymous"></script>
+    
+</body>
+
+</html>
+<!--adapted from https://www.educative.io/answers/how-to-create-a-to-do-list-app-with-flask-->
