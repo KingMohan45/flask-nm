@@ -6,6 +6,8 @@ db=SQLAlchemy(app)
 
 #creating of the model
 class Todo(db.Model):
+    __tablename__ = 'todo_list'
+
     id= db.Column(db.Integer(), primary_key=True)
     task = db.Column(db.String(100))
     is_complete =db.Column(db.Boolean())
